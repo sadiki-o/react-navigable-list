@@ -8,61 +8,66 @@ import { INavigableListProps } from '@/utils/types';
 import { useDragToScroll } from '@/hooks/useDragToScroll';
 import { range } from '@/utils/helpers';
 import ListItem from '@/components/ListItem';
-import { List } from 'react-virtualized';
-
-
 
 const ReactNavigableList: FC<INavigableListProps> = ({
   className,
-  items, // rename parameter
-  selected: initialSelected,
-  disabled,
+  items = [], // rename parameter
+  selected: initialSelected = [],
+  disabled = [],
   focusedIndex: initialFocusedIndex = 0,
   multiple = false,
-  checkboxOnMultiple = true,
+  checkboxOnMultiple = false,
   keyboardEvents = true,
+  enableDragToScroll,
   listItemStyles,
   overflowY = true,
   enableVirtualization = true,
   onMouseLeaveResetFocusedIndex = false,
-  onChange,
-  setSelected: externalSetSelected
+  itemHeight = 20,
+  overscan = 20,
+  windowHeight = 300,
+  onChange
 }) => {
+  // value guard to make initial focused index don't exceed items length
+  if (initialFocusedIndex >= items.length) {
+    initialFocusedIndex = 0;
+  }
+  // focused item index
   const [focusedIndex, setFocusedIndex] = useState<number | undefined>(
     initialFocusedIndex
   );
-  const [selectedItems, setSelectedItems] = useState<number[]>(
-    initialSelected ?? []
-  );
+  // list of selected indexes
+  const [selected, setSelected] = useState<number[]>(initialSelected);
   // Add a state variable to track keyboard navigation state
   const [isKeyboardNavigation, setIsKeyboardNavigation] = useState(false);
 
-  // Define setSelected function if not provided
-  const setSelected = externalSetSelected ?? setSelectedItems;
-  const selected = initialSelected ?? selectedItems;
+  const scrollContainerRef = useRef<any>(null);
 
-  const ulRef = useRef<any>(null);
-
-  const events = useDragToScroll(ulRef);
-
-  // useEffect(() => {
-  //   if (focusedIndex !== undefined && ulRef.current) {
-  //     console.log(ulRef.current);
-  //     const li = ulRef.current.querySelector(`[list-index="${focusedIndex}"]`);
-
-  //     if (li) {
-  //       li.scrollIntoView({
-  //         behavior: 'smooth',
-  //         block: 'nearest'
-  //       });
-  //     }
-  //   }
-  // }, [focusedIndex]);
+  const events = useDragToScroll(scrollContainerRef);
 
   useEffect(() => {
     // trigger user defined onChange on every change
     onChange && onChange(selected);
   }, [onChange, selected]);
+
+  // if user decide to load component at a specific item focused/hovered
+  useEffect(() => {
+    if (overflowY) updateScrollPosition(initialFocusedIndex);
+  }, [overflowY, initialFocusedIndex]);
+
+  // this code is responsible for syncing scroll with the currst focused item
+  const updateScrollPosition = (focusedIndex: number) => {
+    const li: HTMLLIElement = scrollContainerRef.current.querySelector(
+      `[list-index="${focusedIndex}"]`
+    );
+
+    if (li) {
+      li.scrollIntoView({
+        behavior: 'instant',
+        block: 'nearest'
+      });
+    }
+  };
 
   const focusPrevious = () => {
     // if all items are disabled
@@ -87,7 +92,7 @@ const ReactNavigableList: FC<INavigableListProps> = ({
       }
       focusPrevious;
     }
-
+    updateScrollPosition(newIndex!);
     setFocusedIndex(newIndex);
   };
 
@@ -112,7 +117,7 @@ const ReactNavigableList: FC<INavigableListProps> = ({
         break;
       }
     }
-
+    updateScrollPosition(newIndex!);
     setFocusedIndex(newIndex);
   };
 
@@ -156,58 +161,114 @@ const ReactNavigableList: FC<INavigableListProps> = ({
     }
   };
 
-  function rowRenderer({
-    key, // Unique key within array of rows
-    index, // Index of row within collection
-    isScrolling, // The List is currently being scrolled
-    isVisible, // This row is visible within the List (eg it is not an overscanned row)
-    style // Style object to be applied to row (to position it)
-  }) {
+  if (enableVirtualization) {
+    // Ensure initialFocusedIndex is within the valid range when initialFocusedIndex is provided
+    const clampedInitialFocusedIndex = Math.min(
+      Math.max(0, initialFocusedIndex),
+      items.length - 1
+    );
+
+    const [renderedNodesCount, setRenderedNodesCount] = useState(
+      Math.min(
+        items.length,
+        Math.floor(windowHeight / itemHeight) + 2 * overscan
+      )
+    );
+
+    const initialScrollTop =
+      clampedInitialFocusedIndex >= 0
+        ? Math.max(
+            0,
+            (clampedInitialFocusedIndex - Math.floor(renderedNodesCount / 2)) *
+              itemHeight
+          )
+        : 0;
+    const [scrollTop, setScrollTop] = useState(initialScrollTop);
+    const [startIndex, setStartIndex] = useState(
+      Math.max(0, Math.floor(scrollTop / itemHeight) - overscan)
+    );
+
+    const outerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+      const newStartIndex = Math.max(
+        0,
+        Math.floor(scrollTop / itemHeight) - overscan
+      );
+      const newRenderedNodesCount = Math.min(
+        items.length - newStartIndex,
+        Math.floor(windowHeight / itemHeight) + 2 * overscan
+      );
+
+      setStartIndex(newStartIndex);
+      setRenderedNodesCount(newRenderedNodesCount);
+    }, [scrollTop, items.length, windowHeight, itemHeight, overscan]);
+
+    const generateRows = () => {
+      let displayedRows: JSX.Element[] = [];
+      for (let i = startIndex; i < startIndex + renderedNodesCount; i++) {
+        const index = i;
+        displayedRows.push(
+          <ListItem
+            key={index}
+            multiple={multiple}
+            checkboxOnMultiple={checkboxOnMultiple}
+            index={index}
+            disabled={disabled?.includes(index)}
+            selected={selected?.includes(index)}
+            focused={focusedIndex === index}
+            listItemStyles={listItemStyles}
+            isKeyboardNavigation={isKeyboardNavigation}
+            onClick={handleActions}
+            setFocusedIndex={setFocusedIndex}
+          >
+            {items[index].label}
+          </ListItem>
+        );
+      }
+
+      return displayedRows;
+    };
+
     return (
-      <div key={key} style={style}>
-        <ListItem
-          key={index}
-          multiple={multiple}
-          checkboxOnMultiple={checkboxOnMultiple}
-          index={index}
-          disabled={disabled?.includes(index)}
-          selected={selected?.includes(index)}
-          focused={focusedIndex === index}
-          listItemStyles={listItemStyles}
-          isKeyboardNavigation={isKeyboardNavigation}
-          onClick={handleActions}
-          setFocusedIndex={setFocusedIndex}
+      <div
+        ref={outerRef}
+        className="overflow-y-scroll w-full"
+        style={{ height: `${windowHeight}px` }}
+        onScroll={e => {
+          setScrollTop(e.currentTarget.scrollTop);
+        }}
+      >
+        <div
+          style={{
+            height: items.length * itemHeight
+          }}
+          ref={scrollContainerRef}
         >
-          {items[index].label}
-        </ListItem>
+          <ul
+            style={{
+              height: `${renderedNodesCount * itemHeight}px`,
+              transform: `translateY(${startIndex * itemHeight}px)`
+            }}
+            className="focus:outline-none"
+            tabIndex={0}
+            onKeyDown={onKeyDown}
+            onMouseMoveCapture={() => setIsKeyboardNavigation(false)}
+            onMouseLeave={() => {
+              onMouseLeaveResetFocusedIndex && setFocusedIndex(undefined);
+            }}
+            {...(overflowY && enableDragToScroll && events)}
+          >
+            {generateRows()}
+          </ul>
+        </div>
       </div>
     );
   }
 
-  return enableVirtualization ? (
-    <List
-      height={20 * items.length} // Set the height of the list
-      rowCount={items.length} // Number of items in the list
-      rowHeight={20} // Size of each item in the list
-      width={100} // Set the width of the list
-      rowRenderer={rowRenderer}
-      ref={ulRef}
-      // className={clsx(
-      //   'react-navigable-list m-0 list-none border-none p-0 outline-none overflow-y-auto',
-      //   overflowY && 'overflow-y-auto',
-      //   className
-      // )}
-      tabIndex={0}
-      onKeyDown={onKeyDown}
-      onMouseMoveCapture={() => setIsKeyboardNavigation(false)}
-      onMouseLeave={() => {
-        onMouseLeaveResetFocusedIndex && setFocusedIndex(undefined);
-      }}
-      {...(overflowY && events)}
-    ></List>
-  ) : (
+  return (
     <ul
-      ref={ulRef}
+      ref={scrollContainerRef}
       className={clsx(
         'react-navigable-list m-0 list-none border-none p-0 outline-none',
         overflowY && 'overflow-y-auto',
@@ -219,7 +280,7 @@ const ReactNavigableList: FC<INavigableListProps> = ({
       onMouseLeave={() => {
         onMouseLeaveResetFocusedIndex && setFocusedIndex(undefined);
       }}
-      {...(overflowY && events)}
+      {...(overflowY && enableDragToScroll && events)}
     >
       {items.map((itemContent, index) => (
         <ListItem

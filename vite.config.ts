@@ -6,37 +6,6 @@ import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 import path from 'path';
 import { name } from './package.json';
 
-import { readFile, writeFile } from 'fs/promises';
-import { fileURLToPath } from 'url';
-import type { PluginOption } from 'vite';
-// ...
-
-function reactVirtualized(): PluginOption {
-  const WRONG_CODE = `import { bpfrpt_proptype_WindowScroller } from "../WindowScroller.js";`;
-
-  return {
-    name: 'my:react-virtualized',
-    async configResolved() {
-      const reactVirtualizedPath = path.dirname(
-        fileURLToPath(import.meta.resolve('react-virtualized'))
-      );
-
-      const brokenFilePath = path.join(
-        reactVirtualizedPath,
-        '..', // back to dist
-        'es',
-        'WindowScroller',
-        'utils',
-        'onScroll.js'
-      );
-      const brokenCode = await readFile(brokenFilePath, 'utf-8');
-
-      const fixedCode = brokenCode.replace(WRONG_CODE, '');
-      await writeFile(brokenFilePath, fixedCode);
-    },
-  };
-}
-
 const app = async (): Promise<UserConfigExport> => {
   /**
    * Removes everything before the last
@@ -54,8 +23,7 @@ const app = async (): Promise<UserConfigExport> => {
       }),
       cssInjectedByJsPlugin({
         relativeCSSInjection: true
-      }),
-      reactVirtualized()
+      })
     ],
     resolve: {
       alias: {
@@ -75,7 +43,7 @@ const app = async (): Promise<UserConfigExport> => {
         fileName: format => `${formattedName}.${format}.js`
       },
       rollupOptions: {
-        external: ['react', 'react-dom', 'tailwindcss'],
+        external: ['react', 'react-dom', 'tailwindcss', new RegExp('/src/demo/.*')],
         output: {
           preserveModules: false,
           globals: {
@@ -88,6 +56,7 @@ const app = async (): Promise<UserConfigExport> => {
       sourcemap: true,
       emptyOutDir: true,
       minify: true // Minify the output
+      // Exclude src/demo from the build
     },
     css: {
       postcss: {

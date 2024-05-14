@@ -11,8 +11,9 @@ const ListItem: React.FC<IListItemProps> = ({
   index,
   listItemStyles,
   isKeyboardNavigation,
+  itemHeight = 20,
   onClick,
-  setFocusedIndex,
+  setFocusedIndex
 }) => {
   return (
     <li
@@ -28,6 +29,7 @@ const ListItem: React.FC<IListItemProps> = ({
         }
       )}
       style={{
+        ...(itemHeight && { height: itemHeight }),
         ...(disabled && listItemStyles?.disabledStyle),
         ...(focused && !selected && !disabled && listItemStyles?.focusedStyle),
         ...(selected && listItemStyles?.selectedStyle)
