@@ -1,32 +1,34 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import '@/lib/tailwind/theme.css';
-import { useState, useEffect, useRef, FC } from 'react';
+import { useState, useEffect, useRef, FunctionComponent, useMemo } from 'react';
 import clsx from 'clsx';
 
 import { KEYS, KEY } from '@/utils/keys';
-import { INavigableListProps } from '@/utils/types';
-import { useDragToScroll } from '@/hooks/useDragToScroll';
-import { range } from '@/utils/helpers';
-import ListItem from '@/components/ListItem';
+import { INavigableListProps } from '../utils/types';
+import { useDragToScroll } from '../hooks/useDragToScroll';
+import ListItem from '../components/ListItem';
+import { debounce } from '../utils/helpers';
 
-const ReactNavigableList: FC<INavigableListProps> = ({
+const ReactNavigableList: FunctionComponent<INavigableListProps> = ({
   className,
   items = [], // rename parameter
   selected: initialSelected = [],
   disabled = [],
+  maxSelection,
   focusedIndex: initialFocusedIndex = 0,
   multiple = false,
   checkboxOnMultiple = false,
   keyboardEvents = true,
-  enableDragToScroll,
+  enableDragToScroll = true,
   listItemStyles,
   overflowY = true,
-  enableVirtualization = true,
+  enableVirtualization = false,
   onMouseLeaveResetFocusedIndex = false,
   itemHeight = 20,
-  overscan = 20,
+  overscan = 10,
   windowHeight = 300,
-  onChange
+  onChange,
+  onScroll
 }) => {
   // value guard to make initial focused index don't exceed items length
   if (initialFocusedIndex >= items.length) {
@@ -70,64 +72,52 @@ const ReactNavigableList: FC<INavigableListProps> = ({
   };
 
   const focusPrevious = () => {
-    // if all items are disabled
-    if (items.length === disabled.length) {
-      return;
+    // If all items are disabled, do nothing
+    if (items.length === disabled.length) return;
+
+    let newIndex = focusedIndex!;
+
+    // Keep going to the previous item until a non-disabled item is found
+    do {
+      newIndex = (newIndex - 1 + items.length) % items.length;
+    } while (disabled.includes(newIndex) && newIndex !== focusedIndex);
+
+    // If a new valid index is found, update the focus
+    if (newIndex !== focusedIndex) {
+      updateScrollPosition(newIndex);
+      debounce(setFocusedIndex, 20)(newIndex);
     }
-    let newIndex = undefined;
-    let range_;
-    if (focusedIndex === 0) {
-      range_ = range(1, items.length).reverse();
-    } else {
-      range_ = [
-        ...range(0, focusedIndex!).reverse(),
-        ...range(focusedIndex! + 1, focusedIndex!).reverse()
-      ];
-    }
-    for (const element of range_) {
-      if (!disabled?.includes(element)) {
-        newIndex = element;
-        1;
-        break;
-      }
-      focusPrevious;
-    }
-    updateScrollPosition(newIndex!);
-    setFocusedIndex(newIndex);
   };
 
   const focusNext = () => {
-    // if all items are disabled
-    if (items.length === disabled.length) {
-      return;
+    // If all items are disabled, do nothing
+    if (items.length === disabled.length) return;
+
+    let newIndex = focusedIndex!;
+
+    // Keep going to the next item until a non-disabled item is found
+    do {
+      newIndex = (newIndex + 1) % items.length;
+    } while (disabled.includes(newIndex) && newIndex !== focusedIndex);
+
+    // If a new valid index is found, update the focus
+    if (newIndex !== focusedIndex) {
+      updateScrollPosition(newIndex);
+      debounce(setFocusedIndex, 20)(newIndex);
     }
-    let newIndex = undefined;
-    let range_;
-    if (focusedIndex === items.length - 1) {
-      range_ = range(0, items.length - 1);
-    } else {
-      range_ = [
-        ...range(focusedIndex! + 1, items.length),
-        ...range(0, focusedIndex!)
-      ];
-    }
-    for (const element of range_) {
-      if (!disabled?.includes(element)) {
-        newIndex = element;
-        break;
-      }
-    }
-    updateScrollPosition(newIndex!);
-    setFocusedIndex(newIndex);
   };
 
-  // handle insert, de-select
-  const handleActions = (index?: number) => {
+  // handle select, de-select
+  const handleSelection = (index?: number) => {
     if (index) {
       setFocusedIndex(index);
     }
 
     if (multiple) {
+      // prevent selecting more than the maximum
+      if (maxSelection !== undefined && selected.length === maxSelection) {
+        return;
+      }
       if (selected.includes(index ?? focusedIndex!)) {
         setSelected(selected.filter(el => el !== (index ?? focusedIndex)));
       } else {
@@ -151,7 +141,7 @@ const ReactNavigableList: FC<INavigableListProps> = ({
     } else if (key === KEY.DOWN || key === KEY.J) {
       focusNext();
     } else if (key === KEY.SPACE || key === KEY.ENTER) {
-      handleActions();
+      handleSelection();
     }
 
     // prevent default behavior where in some situations pressing the
@@ -183,12 +173,36 @@ const ReactNavigableList: FC<INavigableListProps> = ({
               itemHeight
           )
         : 0;
+
     const [scrollTop, setScrollTop] = useState(initialScrollTop);
     const [startIndex, setStartIndex] = useState(
       Math.max(0, Math.floor(scrollTop / itemHeight) - overscan)
     );
 
+    const [firstNonDisabledIndex, lastNonDisabledIndex] = useMemo(() => {
+      const s = new Set(disabled); // Using a Set for O(1) membership checks
+
+      let l = 0;
+      let r = items.length - 1;
+
+      while (l <= r) {
+        while (l <= r && s.has(l)) {
+          l++;
+        }
+        while (l <= r && s.has(r)) {
+          r--;
+        }
+        if (l <= r) {
+          break;
+        }
+      }
+
+      return [l, r];
+    }, [disabled, items]);
+
     const outerRef = useRef<HTMLDivElement>(null);
+
+    const events = useDragToScroll(outerRef);
 
     useEffect(() => {
       const newStartIndex = Math.max(
@@ -203,6 +217,19 @@ const ReactNavigableList: FC<INavigableListProps> = ({
       setStartIndex(newStartIndex);
       setRenderedNodesCount(newRenderedNodesCount);
     }, [scrollTop, items.length, windowHeight, itemHeight, overscan]);
+
+    // for virtualization enabled, when you move from first to last item using keyboard arrow or the opposite this effect does the calculation (move to bottom or top of the list)
+    useEffect(() => {
+      if (isKeyboardNavigation) {
+        // check if user has scrolled using mouse or scrollbar
+        if (focusedIndex === firstNonDisabledIndex && outerRef.current) {
+          outerRef.current.scrollTop = 0;
+        } else if (focusedIndex === lastNonDisabledIndex && outerRef.current) {
+          outerRef.current.scrollTop = outerRef.current.scrollHeight;
+        }
+        updateScrollPosition(focusedIndex!);
+      }
+    }, [focusedIndex, startIndex]);
 
     const generateRows = () => {
       let displayedRows: JSX.Element[] = [];
@@ -219,7 +246,7 @@ const ReactNavigableList: FC<INavigableListProps> = ({
             focused={focusedIndex === index}
             listItemStyles={listItemStyles}
             isKeyboardNavigation={isKeyboardNavigation}
-            onClick={handleActions}
+            onClick={handleSelection}
             setFocusedIndex={setFocusedIndex}
           >
             {items[index].label}
@@ -237,7 +264,18 @@ const ReactNavigableList: FC<INavigableListProps> = ({
         style={{ height: `${windowHeight}px` }}
         onScroll={e => {
           setScrollTop(e.currentTarget.scrollTop);
+          onScroll &&
+            onScroll(
+              e,
+              e.currentTarget.scrollTop === 0,
+              Boolean(
+                e.currentTarget.scrollTop + e.currentTarget.clientHeight >=
+                  e.currentTarget.scrollHeight - 1
+              )
+            );
         }}
+        onMouseDown={() => setIsKeyboardNavigation(false)}
+        {...(overflowY && enableDragToScroll && events)}
       >
         <div
           style={{
@@ -257,7 +295,6 @@ const ReactNavigableList: FC<INavigableListProps> = ({
             onMouseLeave={() => {
               onMouseLeaveResetFocusedIndex && setFocusedIndex(undefined);
             }}
-            {...(overflowY && enableDragToScroll && events)}
           >
             {generateRows()}
           </ul>
@@ -280,6 +317,17 @@ const ReactNavigableList: FC<INavigableListProps> = ({
       onMouseLeave={() => {
         onMouseLeaveResetFocusedIndex && setFocusedIndex(undefined);
       }}
+      onScroll={e => {
+        onScroll &&
+          debounce(onScroll, 1000)(
+            e,
+            e.currentTarget.scrollTop === 0,
+            Boolean(
+              e.currentTarget.scrollTop + e.currentTarget.clientHeight >=
+                e.currentTarget.scrollHeight - 1
+            )
+          );
+      }}
       {...(overflowY && enableDragToScroll && events)}
     >
       {items.map((itemContent, index) => (
@@ -293,7 +341,7 @@ const ReactNavigableList: FC<INavigableListProps> = ({
           focused={focusedIndex === index}
           listItemStyles={listItemStyles}
           isKeyboardNavigation={isKeyboardNavigation}
-          onClick={handleActions}
+          onClick={handleSelection}
           setFocusedIndex={setFocusedIndex}
         >
           {itemContent.label}

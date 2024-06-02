@@ -1,4 +1,10 @@
-import type { CSSProperties, Dispatch, SetStateAction } from 'react';
+import type {
+  CSSProperties,
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  UIEvent
+} from 'react';
 
 // Define the remaining types used in the INavigableListProps
 type IListItemStylesProps = {
@@ -44,6 +50,11 @@ type BaseProps = {
    */
   disabled?: number[];
   /**
+   * when multiple is enabled, limit the maximum selected items.
+   * @default - undefined
+   */
+  maxSelection?: number | undefined;
+  /**
    * default focused/hovered index.
    * @default - 0
    */
@@ -74,14 +85,22 @@ type BaseProps = {
    */
   overflowY?: boolean;
   /**
-   * Reset focused index on mouse leave.
+   * Reset focused index to undefined on mouse leave.
    * @default false
    */
   onMouseLeaveResetFocusedIndex?: boolean;
   /**
    * Callback function triggered when selected indexes change.
    */
-  onChange?: (selected: number[] | number | undefined) => void;
+  onChange: (selectedIndexes: number[] | number | undefined) => void;
+  /**
+   * Keep track of the scroll position
+   */
+  onScroll: (
+    scrollEvent: UIEvent<HTMLDivElement | HTMLUListElement>,
+    isScrollEnd: boolean,
+    isScrollStart: boolean
+  ) => void;
 };
 
 // Define the props for when virtualization is enabled
@@ -127,7 +146,7 @@ type IListItemProps = {
   disabled: boolean;
   selected: boolean;
   focused: boolean;
-  children: React.ReactNode;
+  children: ReactNode;
   index: number;
   listItemStyles?: IListItemStylesProps;
   isKeyboardNavigation: boolean;

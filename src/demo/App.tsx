@@ -1,13 +1,14 @@
 import '../lib/tailwind/theme.css';
 import { useState } from 'react';
 import ReactNavigableList from '../lib/components/ReactNavigableList';
+import React from 'react';
 
 const App = () => {
   const [selected, setSelected] = useState([1]);
-  const [disabled, _setDisabled] = useState<number[]>([2, 3, 9]);
+  const [disabled, _setDisabled] = useState<number[]>([0,1, 3, 9, 999]);
   const items: any = [];
 
-  for (let i = 1; i <= 1000; i++) {
+  for (let i = 1; i <= 22000; i++) {
     items.push({
       label: `option ${i}`,
       value: `option_${i}`
@@ -16,7 +17,7 @@ const App = () => {
 
   return (
     <div className="flex justify-center gap-x-5 m-10 ">
-      <div className="flex w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-[2px]">
+      {/* <div className="flex w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-[2px]">
         <ReactNavigableList
           items={items}
           selected={selected}
@@ -29,7 +30,7 @@ const App = () => {
         />
       </div>
 
-      <div className="flex h-[220px] w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-[2px]">
+      <div className="flex w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-[2px]">
         <ReactNavigableList
           items={items}
           selected={selected}
@@ -41,7 +42,7 @@ const App = () => {
             console.log(selected);
           }}
         />
-      </div>
+      </div> */}
 
       <div className="flex h-[220px] w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-[2px]">
         <ReactNavigableList
@@ -52,10 +53,13 @@ const App = () => {
           onChange={selected => {
             console.log(selected);
           }}
+          onScroll={(e, b, c) => {
+            console.log(c);
+          }}
         />
       </div>
 
-      <div className="flex h-[220px] w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-[2px]">
+      {/* <div className="flex h-[220px] w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-[2px]">
         <ReactNavigableList
           items={items}
           disabled={disabled}
@@ -69,6 +73,7 @@ const App = () => {
           onChange={selected => {
             console.log(selected);
           }}
+          maxSelection={2}
         />
       </div>
 
@@ -86,7 +91,7 @@ const App = () => {
             console.log(selected);
           }}
         />
-      </div>
+      </div> */}
     </div>
   );
 };

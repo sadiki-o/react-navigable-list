@@ -1,8 +1,9 @@
 import { CSSProperties } from 'react';
 import { Dispatch } from 'react';
-import { FC } from 'react';
-import { INavigableListProps as INavigableListProps_2 } from '../../utils/types';
+import { FunctionComponent } from 'react';
+import { ReactNode } from 'react';
 import { SetStateAction } from 'react';
+import { UIEvent as UIEvent_2 } from 'react';
 
 declare type BaseProps = {
     /**
@@ -35,6 +36,11 @@ declare type BaseProps = {
      */
     disabled?: number[];
     /**
+     * when multiple is enabled, limit the maximum selected items.
+     * @default - undefined
+     */
+    maxSelection?: number | undefined;
+    /**
      * default focused/hovered index.
      * @default - 0
      */
@@ -65,14 +71,18 @@ declare type BaseProps = {
      */
     overflowY?: boolean;
     /**
-     * Reset focused index on mouse leave.
+     * Reset focused index to undefined on mouse leave.
      * @default false
      */
     onMouseLeaveResetFocusedIndex?: boolean;
     /**
      * Callback function triggered when selected indexes change.
      */
-    onChange?: (selected: number[] | number | undefined) => void;
+    onChange: (selectedIndexes: number[] | number | undefined) => void;
+    /**
+     * Keep track of the scroll position
+     */
+    onScroll: (scrollEvent: UIEvent_2<HTMLDivElement | HTMLUListElement>, isScrollEnd: boolean, isScrollStart: boolean) => void;
 };
 
 export declare type IListItemProps = {
@@ -81,7 +91,7 @@ export declare type IListItemProps = {
     disabled: boolean;
     selected: boolean;
     focused: boolean;
-    children: React.ReactNode;
+    children: ReactNode;
     index: number;
     listItemStyles?: IListItemStylesProps;
     isKeyboardNavigation: boolean;
@@ -113,7 +123,7 @@ declare type NonVirtualizedProps = {
     overscan?: never;
 };
 
-declare const ReactNavigableList: FC<INavigableListProps_2>;
+declare const ReactNavigableList: FunctionComponent<INavigableListProps>;
 export default ReactNavigableList;
 
 declare type VirtualizedProps = {
