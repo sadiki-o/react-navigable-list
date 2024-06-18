@@ -1,30 +1,22 @@
 # React Full Year Scheduler
 
-React full year scheduler is an open source project aimed at providing a simple, customizable, and easy-to-use full year calendar solution for individuals and organizations. The project was created out of a need for a more flexible and accessible calendar tool that can be used for various purposes, such as planning events, tracking deadlines, and scheduling appointments.
+React Navigable List is an open-source project aimed at providing a simple, customizable, and easy-to-use list component with advanced navigation features for individuals and organizations. The project was created out of a need for a more flexible and accessible list tool that can be used for various purposes, such as displaying data, managing selections, and providing enhanced keyboard navigation.
 
 ![image description](/preview.png)
 
-## Motivation
-
-As a developer, I faced the challenge of finding calendar components that could easily integrate into my personal or company's projects. Despite my efforts, I couldn't find a suitable solution, leading me to recognize the need for a more versatile and customizable calendar tool. This inspired me to undertake this project.
-
-The primary goal of this project is to create a comprehensive full-year calendar that can be easily customized and seamlessly integrated into any website or web application. I strongly believe that an outstanding calendar should be user-friendly and highly adaptable, enabling users to personalize it to their unique requirements.
+The primary goal of this project is to create a comprehensive navigable list that can be easily customized and seamlessly integrated into any website or web application. I strongly believe that an outstanding list component should be user-friendly and highly adaptable, enabling users to personalize it to their unique requirements.
 
 ## Features
 
--   :ok_hand: Year-at-a-glance view
+-  Simple and intuitive navigation
 
--   :clock930: Ability to set holidays and working days for employees (example usage)
+-  Multiple selection with checkboxes
 
--   :sparkles: Highlight and customize events with different colors and styles
+-  Customizable styling and layout
 
--   :eyes: Customizable styling and layout
+-  Keyboard navigation support
 
--   :grey_exclamation: Show tooltip with event details on hover
-
--   :zap: Lightweight and performant with no external dependencies except Datejs and TailwindCSS
-
--   :open_hands: Open source and free to use
+-  Lightweight and performant with optional virtualization
 
 ## Installation
 
@@ -32,15 +24,17 @@ To install the React Full Year Scheduler , run the following command:
 
 ```bash
 
-yarn add react-full-year-scheduler
+npm i add react-navigable-list 
+yarn add add react-navigable-list
 
 ```
 
-_Note_: this package relies heavily on 'dayjs', you need to have it installed and use it when passing and dealing with events.
+
+
 
 ## Usage
 
-To use this component in your React application, import the `ReactFullYearScheduler` component from the appropriate file, and pass it the required `events` prop as an array of `TEvent` objects, along with any desired options. Here is an example of how you can use this component:
+To use this component in your React application, import the ReactNavigableList component from the appropriate file, and pass it the required props. Here is an example of how you can use this component:
 
 ```jsx
 
@@ -49,81 +43,32 @@ import { ReactFullYearScheduler, TEvent } from "react-full-year-scheduler";
 import dayjs from "dayjs";
 
 const App = () => {
-  const [events, setEvents] = useState<TEvent[]>([
-    {
-      eventName: "event 1",
-      startDate: dayjs("2023-01-10"),
-      endDate: dayjs("2023-02-01"),
-      eventBgColor: "#ff5f4c",
-      eventTextColor: "white",
-    },
-    {
-      eventName: "event 2",
-      startDate: dayjs("2023-04-01"),
-      endDate: dayjs("2023-04-30"),
-      eventBgColor: "purple",
-      eventTextColor: "white",
-    },
-    {
-      eventName: "event 3",
-      startDate: dayjs("2023-05-01"),
-      endDate: dayjs("2023-05-29"),
-      eventBgColor: "green",
-      eventTextColor: "white",
-    },
-  ]);
+  const items: any = [];
+
+  for (let i = 1; i <= 10_000; i++) {
+    items.push({
+      label: `option ${i}`,
+      value: `option_${i}`
+    });
+  }
+
   return (
-    <div className="w-[1400px] mx-auto mt-10">
-      <ReactFullYearScheduler
-        events={events}
-        locale="en"
-        dateTooltipTheme="material"
-        weekSeparatorWidth={10}
-        weekSeparatorColor="white"
-        headerWeekDayBgColor="#b39cd0"
-        headerWeekendBgColor="rgba(75, 68, 83, 0.69)"
-        weekendCellBackgroundColor="rgba(75, 68, 83, 0.69)"
-        weekendCellTextColor="white"
-        weekDayCellBackgroundColor="rgba(75, 68, 83, 0.69)"
-        weekDayCellTextColor="white"
-        selectionColor="black"
-        selectionTextColor="white"
-        maxRangeSelection={50}
-        minRangeSelection={5}
-        firstDayOfWeek="Monday"
-        maxYear={2030}
-        minYear={1970}
-        readonlyCalendar={false}
-        showWeekSeparator={false}
-        showTodayButton={true}
-        enableYearToYearSelection={true}
-        enableWeekendSelection={true}
-        minCellWidth={30}
-        showSeparatorInHeader={false}
-        enableEventOverwriting={true}
-        onDatePick={(eventDate, clearSelectedCell) => {
-          console.log(eventDate.toDate());
-        }}
-        onEventSinglePickInterception={(date, eventName, clearSelectedCell) => {
-          console.table([eventName, date.toDate()]);
-        }}
-        onRangePick={(
-          eventStartDate,
-          eventEndDate,
-          clearSecondSelectedCell,
-          clearSelection
-        ) => {
-          console.log("duck");
-        }}
-        onEventRangePickInterception={(
-          eventFirstDate,
-          eventLastDate,
-          eventsToBeDeleted,
-          eventsToBeUpdated,
-          clearSecondSelectedCell,
-          clearSelection
-        ) => {}}
-      />
+   <div className="flex h-[220px] w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-[2px]">
+        <ReactNavigableList
+          items={items}
+          disabled={disabled}
+          listItemStyles={{
+            focusedClasses: 'bg-purple-500 text-white',
+            disabledClasses: 'text-[#C7C8CC]',
+            selectedClasses: 'bg-purple-300 text-white'
+          }}
+          multiple={true}
+          checkboxOnMultiple={true}
+          onChange={selected => {
+            console.log(selected);
+          }}
+          maxSelection={2}
+        />
     </div>
   );
 };
@@ -134,46 +79,35 @@ export default App;
 
 ## Options
 
-| Property Name                | Type       | Default      | Options                                                    |
-| ---------------------------- | ---------- | ------------ | ---------------------------------------------------------- |
-| `events`                     | `TEvent[]` | -            | -                                                          |
-| `dateTooltipTheme`           | `string`   | `"material"` | `"material"`, `"light"`, `"light-border"`, `"translucent"` |
-| `locale`                     | `string`   | `"en"`       | -                                                          |
-| `weekSeparatorWidth`         | `number`   | `10`         | -                                                          |
-| `weekSeparatorColor`         | `string`   | "#fefedf"    | -                                                          |
-| `headerWeekDayBgColor`       | `string`   | "#c3b5d5"    | -                                                          |
-| `headerWeekendBgColor`       | `string`   | "#b39cd0"    | -                                                          |
-| `headerTextColor`            | `string`   | "white"      | -                                                          |
-| `weekendCellBackgroundColor` | `string`   | "#b39cd0"    | -                                                          |
-| `weekendCellTextColor`       | `string`   | "white"      | -                                                          |
-| `weekDayCellBackgroundColor` | `string`   | "white"      | -                                                          |
-| `weekDayCellTextColor`       | `string`   | "black"      | -                                                          |
-| `monthNameBackgroundColor`   | `string`   | "#f2fedc"    | -                                                          |
-| `monthNameTextColor`         | `string`   | "black"      | -                                                          |
-| `readonlyCalendar`           | `boolean`  | false        | -                                                          |
-| `enableYearToYearSelection`  | `boolean`  | false        | -                                                          |
-| `enableWeekendSelection`     | `boolean`  | true         | -                                                          |
-| `selectionColor`             | `string`   | "#32214c"    | -                                                          |
-| `selectionTextColor`         | `string`   | "white"      | -                                                          |
-| `maxRangeSelection`          | `number`   | -            | -                                                          |
-| `minRangeSelection`          | `number`   | -            | -                                                          |
-| `firstDayOfWeek`             | `string`   | `"Sunday"`   | `"Sunday"`, `"Monday"`                                     |
-| `maxYear`                    | `number`   | "Monday"     | -                                                          |
-| `minYear`                    | `number`   | -            | -                                                          |
-| `showWeekSeparator`          | `boolean`  | false        | -                                                          |
-| `showTodayButton`            | `boolean`  | true         | -                                                          |
-| `minCellWidth`               | `number`   | 40           | -                                                          |
-| `showSeparatorInHeader`      | `boolean`  | true         | -                                                          |
-| `enableEventOverwriting`     | `boolean`  | true         | -                                                          |
+| Property Name                  | Type       | Default      | Description                                                                                         |
+| ------------------------------ | ---------- | ------------ | --------------------------------------------------------------------------------------------------- |
+| `className`                    | `string`   | -            | Class name for the list.                                                                   |
+| `listItemStyles`               | `object`   | -            | Styling/classes of the items/rows depending on their state (selected, disabled, focused).           |
+| `items`                        | `object[]` | `[]`         | List of items/rows to be fed to the component. Each item should have a `label` and `value` field.   |
+| `selected`                     | `number[]` | `[]`         | List of selected indexes.                                                                           |
+| `disabled`                     | `number[]` | `[]`         | List of disabled indexes.                                                                           |
+| `maxSelection`                 | `number`   | `undefined`  | Limit the maximum selected items when multiple selection is enabled.                                |
+| `focusedIndex`                 | `number`   | `0`          | Default focused/hovered index.                                                                      |
+| `multiple`                     | `boolean`  | `false`      | Enable multi-select or not.                                                                         |
+| `checkboxOnMultiple`           | `boolean`  | `false`      | Enable checkboxes for multi-select.                                                                 |
+| `keyboardEvents`               | `boolean`  | `false`      | Enable keyboard navigation/interactions.                                                            |
+| `enableDragToScroll`           | `boolean`  | `true`       | Enable scrolling by dragging rows/items with the mouse.                                              |
+| `overflowY`                    | `boolean`  | `false`      | Enable overflow if you want a scrollable list, else a normal list without scrolling.                |
+| `onMouseLeaveResetFocusedIndex` | `boolean`  | `false`      | Reset focused index to undefined on mouse leave.                                                     |
+| `onChange`                     | `function` | -            | Callback function triggered when selected indexes change.                                             |
+| `onScroll`                     | `function` | -            | Callback function to keep track of the scroll position.                                              |
+| `enableVirtualization`         | `boolean`  | `false`      | Enable virtualization for better performance with large lists.                                       |
+| `itemHeight`                   | `number`   | `20`         | Height of each item row (required if virtualization is enabled).                                     |
+| `windowHeight`                 | `number`   | `300`        | Height of the list window (required if virtualization is enabled).                                   |
+| `overscan`                     | `number`   | `20`         | Number of extra items to render before and after the visible area/range when virtualization is enabled.|                                                |
 
 ## Events
 
-| Event                           | Arguments                                                                                                                                                               | Description                                                                                                 |
-| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `onDatePick`                    | `eventDate: Dayjs, clearSelectedCell: () => void`                                                                                                                       | Triggered when a single date is picked.                                                                     |
-| `onEventSinglePickInterception` | `eventDate: Dayjs, InterceptedEventIndex: number, clearSelectedCell: () => void`                                                                                        | Triggered when a single date is picked while intercepting an existing event.                                |
-| `onRangePick`                   | `eventStartDate: Dayjs, eventEndDate: Dayjs, clearSecondSelectedCell: () => void, clearSelection: () => void`                                                           | Triggered when picking a range of dates (start date / end date)                                             |
-| `onEventRangePickInterception`  | `eventStartDate: Dayjs, eventEndDate: Dayjs, eventsToBeDeleted: number[], eventsToBeUpdated: number[], clearSecondSelectedCell: () => void, clearSelection: () => void` | Triggered when picking a range of dates (start date / end date) while intercepting another event or events. |
+| Event      | Arguments                                                                                                    | Description                                                                                     |
+| ---------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| `onScroll` | `scrollEvent: UIEvent<HTMLDivElement \| HTMLUListElement>, isScrollEnd: boolean, isScrollStart: boolean`       | Triggered when the scroll position changes in the list component.                               |
+| `onChange` | `selectedIndexes: number[] \| number \| undefined`                                                             | Callback function triggered when selected indexes in the list component change.                 |
+
 
 ## How to Contribute
 
@@ -196,5 +130,3 @@ Inside ```src/``` there is a folder called demo which you can use to test the co
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](https://opensource.org/licenses/MIT) for details.
-
-<a href="https://www.buymeacoffee.com/sadikio" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>

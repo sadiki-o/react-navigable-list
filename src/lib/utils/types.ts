@@ -21,7 +21,7 @@ type IListItemStylesProps = {
 // Define the base props that are always available
 type BaseProps = {
   /**
-   * class name of the the unordered list.
+   * class name of the the list element.
    */
   className?: string;
   /**
