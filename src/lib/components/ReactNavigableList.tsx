@@ -8,7 +8,6 @@ import { INavigableListProps } from '../utils/types';
 import { useDragToScroll } from '../hooks/useDragToScroll';
 import ListItem from '../components/ListItem';
 import { debounce } from '../utils/helpers';
-import React from 'react';
 
 const ReactNavigableList: FunctionComponent<INavigableListProps> = ({
   className,
@@ -115,13 +114,15 @@ const ReactNavigableList: FunctionComponent<INavigableListProps> = ({
     }
 
     if (multiple) {
-      // prevent selecting more than the maximum
-      if (maxSelection !== undefined && selected.length === maxSelection) {
-        return;
-      }
+      // de-select
       if (selected.includes(index ?? focusedIndex!)) {
         setSelected(selected.filter(el => el !== (index ?? focusedIndex)));
       } else {
+        // prevent selecting more than the maximum
+        if (maxSelection !== undefined && selected.length === maxSelection) {
+          return;
+        }
+        // select
         setSelected([...selected, index ?? focusedIndex!]);
       }
     } else {
