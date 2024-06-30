@@ -8,6 +8,7 @@ import { INavigableListProps } from '../utils/types';
 import { useDragToScroll } from '../hooks/useDragToScroll';
 import ListItem from '../components/ListItem';
 import { debounce } from '../utils/helpers';
+import React from 'react';
 
 const ReactNavigableList: FunctionComponent<INavigableListProps> = ({
   className,
