@@ -35,6 +35,7 @@ const App = () => {
           onChange={selected => {
             console.log(selected);
           }}
+          onScroll={() => {}}
         />
       </div>
 
@@ -49,6 +50,7 @@ const App = () => {
           onChange={selected => {
             console.log(selected);
           }}
+          onScroll={() => {}}
         />
       </div>
 
@@ -87,6 +89,7 @@ const App = () => {
             console.log(selected);
           }}
           maxSelection={2}
+          onScroll={() => {}}
         />
       </div>
 
@@ -103,6 +106,7 @@ const App = () => {
           onChange={selected => {
             console.log(selected);
           }}
+          onScroll={() => {}}
         />
       </div>
     </div>
