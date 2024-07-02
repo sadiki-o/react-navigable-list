@@ -3,7 +3,7 @@
   "version": "0.0.41",
   "type": "module",
   "description": "",
-  "homepage": "https://github.com/sadiki-o/react-navigable-list#readme",
+  "homepage": "https://react-navigable-list-demo.vercel.app",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sadiki-o/react-navigable-list.git"
