@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import React from 'react';
 import '@/lib/tailwind/theme.css';
 import { useState, useEffect, useRef, FunctionComponent, useMemo } from 'react';
 import clsx from 'clsx';
@@ -113,18 +114,19 @@ const ReactNavigableList: FunctionComponent<INavigableListProps> = ({
       setFocusedIndex(index);
     }
 
+    // de-select
+    if (selected.includes(index ?? focusedIndex!)) {
+      setSelected(selected.filter(el => el !== (index ?? focusedIndex)));
+      return;
+    }
+
     if (multiple) {
-      // de-select
-      if (selected.includes(index ?? focusedIndex!)) {
-        setSelected(selected.filter(el => el !== (index ?? focusedIndex)));
-      } else {
-        // prevent selecting more than the maximum
-        if (maxSelection !== undefined && selected.length === maxSelection) {
-          return;
-        }
-        // select
-        setSelected([...selected, index ?? focusedIndex!]);
+      // prevent selecting more than the maximum
+      if (maxSelection !== undefined && selected.length === maxSelection) {
+        return;
       }
+      // select
+      setSelected([...selected, index ?? focusedIndex!]);
     } else {
       setSelected([index ?? focusedIndex!]);
     }

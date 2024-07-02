@@ -163,7 +163,7 @@ type IListItemProps = {
   isKeyboardNavigation: boolean;
   itemHeight?: number;
   onClick: (index: number) => void;
-  setFocusedIndex: Dispatch<SetStateAction<number | undefined>>;
+  setFocusedIndex: Dispatch<SetStateAction<number | undefined>>;        
 };
 
 export type { INavigableListProps, IListItemProps, IListItemStylesProps };

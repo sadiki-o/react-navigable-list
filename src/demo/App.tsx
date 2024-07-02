@@ -18,7 +18,7 @@ const App = () => {
   }
 
   for (let i = 1; i <= 100_000; i++) {
-    virtuItems.push({
+    virtuItems.push({ 
       label: `option ${i}`,
       value: `option_${i}`
     });
@@ -58,8 +58,8 @@ const App = () => {
           items={virtuItems}
           selected={virtuSelected}
           disabled={disabled}
-          multiple={true}
-          checkboxOnMultiple={false}
+          // multiple={true}
+          // checkboxOnMultiple={false}
           onChange={selected => {
             console.log(selected);
           }}
