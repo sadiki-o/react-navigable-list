@@ -50,25 +50,10 @@ type BaseProps = {
    */
   disabled?: number[];
   /**
-   * when multiple is enabled, limit the maximum selected items.
-   * @default - undefined
-   */
-  maxSelection?: number | undefined;
-  /**
    * default focused/hovered index.
    * @default - 0
    */
   focusedIndex?: number;
-  /**
-   * enable multi select or not.
-   * @default - false
-   */
-  multiple?: boolean;
-  /**
-   * enable checkboxes for multi select.
-   * @default - false
-   */
-  checkboxOnMultiple?: boolean;
   /**
    * enable keyboard navigation/interactions.
    * @default - false
@@ -101,6 +86,24 @@ type BaseProps = {
     isScrollEnd: boolean,
     isScrollStart: boolean
   ) => void;
+};
+
+type MultipleEnabledProps = {
+  /**
+   * when multiple is enabled, limit the maximum selected items.
+   * @default - undefined
+   */
+  maxSelection?: number | undefined;
+  /**
+   * enable checkboxes for multi select.
+   * @default - false
+   */
+  checkboxOnMultiple?: boolean;
+};
+
+type NonMultipleEnabledProps = {
+  maxSelection?: never;
+  checkboxOnMultiple?: never;
 };
 
 // Define the props for when virtualization is enabled
@@ -138,6 +141,14 @@ type INavigableListProps = BaseProps &
     | ({
         enableVirtualization: true;
       } & VirtualizedProps)
+  ) &
+  (
+    | ({
+        multiple?: false;
+      } & NonMultipleEnabledProps)
+    | ({
+        multiple: true;
+      } & MultipleEnabledProps)
   );
 
 type IListItemProps = {

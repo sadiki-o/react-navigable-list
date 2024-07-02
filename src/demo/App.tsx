@@ -6,7 +6,7 @@ import React from 'react';
 const App = () => {
   const [selected, setSelected] = useState([1]);
   const [virtuSelected, setVirtuSelected] = useState([1]);
-  const [disabled, _setDisabled] = useState<number[]>([0,1, 3, 9, 999]);
+  const [disabled, _setDisabled] = useState<number[]>([0, 1, 3, 9, 999]);
   const items: any = [];
   const virtuItems: any = [];
 
@@ -30,7 +30,7 @@ const App = () => {
           items={items}
           selected={selected}
           disabled={disabled}
-          multiple={false}
+          multiple
           checkboxOnMultiple={true}
           onChange={selected => {
             console.log(selected);
@@ -44,8 +44,7 @@ const App = () => {
           items={items}
           selected={selected}
           disabled={disabled}
-          multiple={false}
-          checkboxOnMultiple={true}
+          multiple={true}
           overflowY={false}
           onChange={selected => {
             console.log(selected);
