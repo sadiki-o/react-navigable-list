@@ -1,4 +1,4 @@
-# React Full Year Scheduler
+# React Navigable List
 
 React Navigable List is an open-source project aimed at providing a simple, customizable, and easy-to-use list component with advanced navigation features for individuals and organizations. The project was created out of a need for a more flexible and accessible list tool that can be used for various purposes, such as displaying data, managing selections, and providing enhanced keyboard navigation.
 
@@ -20,7 +20,7 @@ The primary goal of this project is to create a comprehensive navigable list tha
 
 ## Installation
 
-To install the React Full Year Scheduler , run the following command:
+To install the React Navigable List, run the following command:
 
 ```bash
 
@@ -38,22 +38,81 @@ To use this component in your React application, import the ReactNavigableList c
 
 ```jsx
 
-import { useState } from "react";
-import { ReactFullYearScheduler, TEvent } from "react-full-year-scheduler";
-import dayjs from "dayjs";
+import { useState } from 'react';
+import ReactNavigableList from 'react-navigable-list';
 
 const App = () => {
+  const [selected, setSelected] = useState([1]);
+  const [virtuSelected, setVirtuSelected] = useState([1]);
+  const [disabled, _setDisabled] = useState<number[]>([0,1, 3, 9, 999]);
   const items: any = [];
+  const virtuItems: any = [];
 
-  for (let i = 1; i <= 10_000; i++) {
+  for (let i = 1; i <= 1000; i++) {
     items.push({
       label: `option ${i}`,
       value: `option_${i}`
     });
   }
 
+  for (let i = 1; i <= 100_000; i++) {
+    virtuItems.push({
+      label: `option ${i}`,
+      value: `option_${i}`
+    });
+  }
   return (
-   <div className="flex h-[220px] w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-[2px]">
+    <div className="flex justify-center gap-x-5 m-10 ">
+      <div className="flex w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-[2px]">
+        <ReactNavigableList
+          items={items}
+          selected={selected}
+          disabled={disabled}
+          multiple={false}
+          checkboxOnMultiple={true}
+          onChange={selected => {
+            console.log(selected);
+          }}
+          onScroll={() => {}}
+        />
+      </div>
+
+      <div className="flex w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-[2px]">
+        <ReactNavigableList
+          items={items}
+          selected={selected}
+          disabled={disabled}
+          multiple={false}
+          checkboxOnMultiple={true}
+          overflowY={false}
+          onChange={selected => {
+            console.log(selected);
+          }}
+          onScroll={() => {}}
+        />
+      </div>
+
+      <div className="flex h-[220px] w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-[2px]">
+        <ReactNavigableList
+          items={virtuItems}
+          selected={virtuSelected}
+          disabled={disabled}
+          multiple={true}
+          checkboxOnMultiple={false}
+          onChange={selected => {
+            console.log(selected);
+          }}
+          onScroll={(e, b, c) => {
+            console.log(c);
+          }}
+          itemHeight={20}
+          windowHeight={300}
+          // maxSelection={2}
+          enableVirtualization
+        />
+      </div>
+
+      <div className="flex h-[220px] w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-[2px]">
         <ReactNavigableList
           items={items}
           disabled={disabled}
@@ -68,7 +127,26 @@ const App = () => {
             console.log(selected);
           }}
           maxSelection={2}
+          onScroll={() => {}}
         />
+      </div>
+
+      <div className="flex h-[220px] w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-[2px]">
+        <ReactNavigableList
+          items={items}
+          disabled={disabled}
+          listItemStyles={{
+            disabledClasses: 'text-pink-300',
+            checkboxClasses: 'accent-black'
+          }}
+          multiple={true}
+          checkboxOnMultiple={true}
+          onChange={selected => {
+            console.log(selected);
+          }}
+          onScroll={() => {}}
+        />
+      </div>
     </div>
   );
 };
