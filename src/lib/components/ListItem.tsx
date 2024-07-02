@@ -20,7 +20,7 @@ const ListItem: FC<IListItemProps> = memo(
     return (
       <li
         className={clsx(
-          `${selected ? 'list-item-selected' : focused ? 'list-item-focused' : disabled ? 'list-item-disabled' : 'normal-list-item'} cursor-default mt-[2px] flex h-[20px] items-center px-1 text-[12px] text-[#7C7975]`,
+          `${selected ? 'list-item-selected' : focused ? 'list-item-focused' : disabled ? 'list-item-disabled' : 'normal-list-item'} cursor-default mt-[2px] flex items-center px-1 text-[12px] text-[#7C7975]`,
           {
             [listItemStyles?.focusedClasses ??
             'bg-[#e6e4e0] text-white hover:bg-[#e6e4e0] hover:text-[#94928f]']:

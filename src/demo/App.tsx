@@ -64,9 +64,9 @@ const App = () => {
             console.log(selected);
           }}
           onScroll={(e, b, c) => {
-            console.log(c);
+            console.log(c); 
           }}
-          itemHeight={20}
+          itemHeight={40}
           windowHeight={300}
           // maxSelection={2}
           enableVirtualization

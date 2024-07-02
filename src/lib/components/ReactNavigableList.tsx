@@ -252,6 +252,7 @@ const ReactNavigableList: FunctionComponent<INavigableListProps> = ({
             isKeyboardNavigation={isKeyboardNavigation}
             onClick={handleSelection}
             setFocusedIndex={setFocusedIndex}
+            itemHeight={itemHeight}
           >
             {items[index].label}
           </ListItem>
@@ -347,6 +348,7 @@ const ReactNavigableList: FunctionComponent<INavigableListProps> = ({
           isKeyboardNavigation={isKeyboardNavigation}
           onClick={handleSelection}
           setFocusedIndex={setFocusedIndex}
+          itemHeight={itemHeight}
         >
           {itemContent.label}
         </ListItem>
