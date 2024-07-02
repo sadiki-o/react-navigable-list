@@ -24,8 +24,8 @@ To install the React Full Year Scheduler , run the following command:
 
 ```bash
 
-npm i add react-navigable-list 
-yarn add add react-navigable-list
+npm i react-navigable-list 
+yarn add react-navigable-list
 
 ```
 
