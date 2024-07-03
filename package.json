@@ -30,6 +30,8 @@
   },
   "keywords": [
     "react-select",
+    "react-virtualized",
+    "virtualization",
     "react-list",
     "react-scrollable-list",
     "react-custom-select",
