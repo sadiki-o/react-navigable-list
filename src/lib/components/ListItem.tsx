@@ -1,7 +1,10 @@
+/* eslint-disable react/no-unknown-property */
 import clsx from 'clsx';
-import type { IListItemProps } from '@/utils/types';
+import { FunctionComponent, memo } from 'react';
+import { IListItemProps } from '@/utils/types';
+import React from 'react';
 
-const ListItem: React.FC<IListItemProps> = ({
+const ListItem: FunctionComponent<IListItemProps> = memo(function ListItem({
   multiple,
   checkboxOnMultiple,
   disabled,
@@ -11,23 +14,29 @@ const ListItem: React.FC<IListItemProps> = ({
   index,
   listItemStyles,
   isKeyboardNavigation,
+  itemHeight = 20,
   onClick,
-  setFocusedIndex,
-}) => {
+  setFocusedIndex
+}) {
   return (
     <li
       className={clsx(
-        `${selected ? 'list-item-selected' : focused ? 'list-item-focused' : disabled ? 'list-item-disabled' : 'normal-list-item'} cursor-default mt-[2px] flex h-[20px] items-center px-1 text-[12px] text-[#7C7975]`,
+        `${selected ? 'list-item-selected' : focused ? 'list-item-focused' : disabled ? 'list-item-disabled' : 'normal-list-item'} mt-[2px] flex h-[20px] cursor-default items-center px-1 text-[12px] text-[#7C7975]`,
         {
-          [listItemStyles?.focusedClasses ??
-          'bg-[#e6e4e0] text-white hover:bg-[#e6e4e0] hover:text-[#94928f]']:
+          [listItemStyles?.focusedClasses || 'bg-[#e6e4e0] text-[#94928f]']:
             focused && !disabled && !selected,
           [listItemStyles?.disabledClasses ?? '!text-[#C7C8CC]']: disabled,
-          [listItemStyles?.selectedClasses ??
-          'bg-option-selected !text-white ']: selected
+          [listItemStyles?.selectedClasses ?? 'bg-option-selected !text-white']:
+            selected,
+          ['hover:bg-[#e6e4e0] hover:text-[#94928f]']:
+            !isKeyboardNavigation &&
+            !focused &&
+            !disabled &&
+            !listItemStyles?.focusedClasses
         }
       )}
       style={{
+        ...(itemHeight && { height: itemHeight }),
         ...(disabled && listItemStyles?.disabledStyle),
         ...(focused && !selected && !disabled && listItemStyles?.focusedStyle),
         ...(selected && listItemStyles?.selectedStyle)
@@ -38,7 +47,7 @@ const ListItem: React.FC<IListItemProps> = ({
           setFocusedIndex(index);
         }
       }}
-      list-index={index}
+      data-list-index={index}
     >
       {multiple && checkboxOnMultiple && (
         <input
@@ -54,6 +63,6 @@ const ListItem: React.FC<IListItemProps> = ({
       {children}
     </li>
   );
-};
+});
 
 export default ListItem;

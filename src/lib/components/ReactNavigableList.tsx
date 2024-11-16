@@ -1,213 +1,358 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import '@/lib/tailwind/theme.css';
-import { useState, useEffect, useRef, FC } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  LegacyRef,
+  FunctionComponent,
+  KeyboardEvent
+} from 'react';
 import clsx from 'clsx';
-
-import { KEYS, KEY } from '@/utils/keys';
 import { INavigableListProps } from '@/utils/types';
 import { useDragToScroll } from '@/hooks/useDragToScroll';
-import { range } from '@/utils/helpers';
-import ListItem from '@/components/ListItem';
-import { List } from 'react-virtualized';
+import { debounce } from '@/utils/helpers';
+import { isKeyType, KeysEnum, KeysList } from '@/utils/keys';
+import ListItem from './ListItem';
 
-
-
-const ReactNavigableList: FC<INavigableListProps> = ({
+const ReactNavigableList: FunctionComponent<INavigableListProps> = ({
   className,
-  items, // rename parameter
-  selected: initialSelected,
-  disabled,
+  items = [], // rename parameter
+  selected: initialSelected = [],
+  disabled = [],
+  maxSelection,
   focusedIndex: initialFocusedIndex = 0,
+  shouldFocusComponent,
   multiple = false,
-  checkboxOnMultiple = true,
+  checkboxOnMultiple = false,
   keyboardEvents = true,
+  enableDragToScroll = true,
   listItemStyles,
   overflowY = true,
-  enableVirtualization = true,
+  enableVirtualization = false,
   onMouseLeaveResetFocusedIndex = false,
+  itemHeight = 20,
+  overscan = 10,
+  windowHeight = 300,
   onChange,
-  setSelected: externalSetSelected
+  onScroll,
+  onKeyboardNavigation
 }) => {
+  // value guard to make initial focused index don't exceed items length
+  if (initialFocusedIndex >= items.length) {
+    initialFocusedIndex = 0;
+  }
+  // focused item index
   const [focusedIndex, setFocusedIndex] = useState<number | undefined>(
-    initialFocusedIndex
+    initialFocusedIndex ?? 0
   );
-  const [selectedItems, setSelectedItems] = useState<number[]>(
-    initialSelected ?? []
-  );
+  // list of selected indexes
+  const [selected, setSelected] = useState<number[]>(initialSelected);
   // Add a state variable to track keyboard navigation state
   const [isKeyboardNavigation, setIsKeyboardNavigation] = useState(false);
 
-  // Define setSelected function if not provided
-  const setSelected = externalSetSelected ?? setSelectedItems;
-  const selected = initialSelected ?? selectedItems;
+  const scrollContainerRef = useRef<HTMLDivElement | HTMLUListElement>(null);
 
-  const ulRef = useRef<any>(null);
+  const events = useDragToScroll(scrollContainerRef);
 
-  const events = useDragToScroll(ulRef);
-
-  // useEffect(() => {
-  //   if (focusedIndex !== undefined && ulRef.current) {
-  //     console.log(ulRef.current);
-  //     const li = ulRef.current.querySelector(`[list-index="${focusedIndex}"]`);
-
-  //     if (li) {
-  //       li.scrollIntoView({
-  //         behavior: 'smooth',
-  //         block: 'nearest'
-  //       });
-  //     }
-  //   }
-  // }, [focusedIndex]);
+  // if user decide to load component at a specific item focused/hovered
+  useEffect(() => {
+    if (overflowY) updateScrollPosition(initialFocusedIndex);
+  }, [overflowY, initialFocusedIndex]);
 
   useEffect(() => {
-    // trigger user defined onChange on every change
-    onChange && onChange(selected);
-  }, [onChange, selected]);
+    if (shouldFocusComponent) {
+      scrollContainerRef?.current?.focus();
+      setFocusedIndex(0);
+    } else setFocusedIndex(undefined);
+  }, [shouldFocusComponent]);
+
+  // this code is responsible for syncing scroll with the currst focused item
+  const updateScrollPosition = (focusedIndex: number) => {
+    const li = scrollContainerRef?.current?.querySelector(
+      `[data-list-index="${focusedIndex}"]`
+    );
+
+    if (li) {
+      li.scrollIntoView({
+        behavior: 'instant',
+        block: 'nearest'
+      });
+    }
+  };
 
   const focusPrevious = () => {
-    // if all items are disabled
-    if (items.length === disabled.length) {
-      return;
-    }
-    let newIndex = undefined;
-    let range_;
-    if (focusedIndex === 0) {
-      range_ = range(1, items.length).reverse();
-    } else {
-      range_ = [
-        ...range(0, focusedIndex!).reverse(),
-        ...range(focusedIndex! + 1, focusedIndex!).reverse()
-      ];
-    }
-    for (const element of range_) {
-      if (!disabled?.includes(element)) {
-        newIndex = element;
-        1;
-        break;
-      }
-      focusPrevious;
-    }
+    // If all items are disabled, do nothing
+    if (items.length === disabled.length) return;
 
-    setFocusedIndex(newIndex);
+    let newIndex = focusedIndex!;
+
+    // Keep going to the previous item until a non-disabled item is found
+    do {
+      newIndex = (newIndex - 1 + items.length) % items.length;
+    } while (disabled.includes(newIndex) && newIndex !== focusedIndex);
+
+    // If a new valid index is found, update the focus
+    if (newIndex !== focusedIndex) {
+      updateScrollPosition(newIndex);
+      debounce(setFocusedIndex, 20)(newIndex);
+    }
   };
 
   const focusNext = () => {
-    // if all items are disabled
-    if (items.length === disabled.length) {
-      return;
-    }
-    let newIndex = undefined;
-    let range_;
-    if (focusedIndex === items.length - 1) {
-      range_ = range(0, items.length - 1);
-    } else {
-      range_ = [
-        ...range(focusedIndex! + 1, items.length),
-        ...range(0, focusedIndex!)
-      ];
-    }
-    for (const element of range_) {
-      if (!disabled?.includes(element)) {
-        newIndex = element;
-        break;
-      }
-    }
+    // If all items are disabled, do nothing
+    if (items.length === disabled.length) return;
 
-    setFocusedIndex(newIndex);
+    let newIndex = focusedIndex!;
+
+    // Keep going to the next item until a non-disabled item is found
+    do {
+      newIndex = (newIndex + 1) % items.length;
+    } while (disabled.includes(newIndex) && newIndex !== focusedIndex);
+
+    // If a new valid index is found, update the focus
+    if (newIndex !== focusedIndex) {
+      updateScrollPosition(newIndex);
+      debounce(setFocusedIndex, 20)(newIndex);
+    }
   };
 
-  // handle insert, de-select
-  const handleActions = (index?: number) => {
-    if (index) {
+  // handle select, de-select
+  const handleSelection = (index?: number) => {
+    if (index !== undefined) {
       setFocusedIndex(index);
     }
 
     if (multiple) {
+      // prevent selecting more than the maximum
+      if (maxSelection !== undefined && selected.length === maxSelection) {
+        return;
+      }
       if (selected.includes(index ?? focusedIndex!)) {
-        setSelected(selected.filter(el => el !== (index ?? focusedIndex)));
+        const newVal = selected.filter(el => el !== (index ?? focusedIndex));
+
+        setSelected(newVal);
+        onChange(newVal);
       } else {
         setSelected([...selected, index ?? focusedIndex!]);
+        onChange([...selected, index ?? focusedIndex!]);
       }
     } else {
       setSelected([index ?? focusedIndex!]);
+      onChange([index ?? focusedIndex!]);
     }
   };
 
-  const onKeyDown = (event: any) => {
+  const onKeyDown = (event: KeyboardEvent<HTMLUListElement>) => {
     // disable keyboard events when keyboardEvents is false
     if (!keyboardEvents) return;
 
     setIsKeyboardNavigation(true);
 
-    const key = event.keyCode;
+    const key = event.key;
 
-    if (key === KEY.UP || key === KEY.K) {
-      focusPrevious();
-    } else if (key === KEY.DOWN || key === KEY.J) {
-      focusNext();
-    } else if (key === KEY.SPACE || key === KEY.ENTER) {
-      handleActions();
-    }
+    if (isKeyType(key)) {
+      if (
+        [KeysEnum.UP, KeysEnum.DOWN].includes(
+          key as typeof KeysEnum.UP | typeof KeysEnum.DOWN
+        )
+      ) {
+        // when there is only one item in the list trigger the onScroll because onscroll on parent doesn't trigger it
+        if (items.length === 1 && onScroll) {
+          onScroll(
+            event,
+            key === KeysEnum.DOWN ? true : false,
+            key === KeysEnum.UP ? true : false
+          );
+        }
 
-    // prevent default behavior where in some situations pressing the
-    // key up / down would scroll the browser window
-    if (KEYS?.includes(key)) {
-      event.preventDefault();
+        // triggered when navigating with arrow UP and DOWn
+        if (onKeyboardNavigation) {
+          const res = onKeyboardNavigation(
+            focusedIndex!,
+            key as typeof KeysEnum.UP | typeof KeysEnum.DOWN
+          );
+          // prevent navigation default behavior if the function returns true
+          if (res) return;
+        }
+      }
+
+      if (key === KeysEnum.UP || key === KeysEnum.K) {
+        focusPrevious();
+      } else if (key === KeysEnum.DOWN || key === KeysEnum.J) {
+        focusNext();
+      } else if (key === KeysEnum.SPACE || key === KeysEnum.ENTER) {
+        handleSelection();
+      }
+
+      // prevent default behavior where in some situations pressing the
+      // key up / down would scroll the browser window
+      if (KeysList?.includes(key)) {
+        event.preventDefault();
+      }
     }
   };
 
-  function rowRenderer({
-    key, // Unique key within array of rows
-    index, // Index of row within collection
-    isScrolling, // The List is currently being scrolled
-    isVisible, // This row is visible within the List (eg it is not an overscanned row)
-    style // Style object to be applied to row (to position it)
-  }) {
+  if (enableVirtualization) {
+    // Ensure initialFocusedIndex is within the valid range when initialFocusedIndex is provided
+    const clampedInitialFocusedIndex = Math.min(
+      Math.max(0, initialFocusedIndex),
+      items.length - 1
+    );
+
+    const [renderedNodesCount, setRenderedNodesCount] = useState(
+      Math.min(
+        items.length,
+        Math.floor(windowHeight / itemHeight) + 2 * overscan
+      )
+    );
+
+    const initialScrollTop =
+      clampedInitialFocusedIndex >= 0
+        ? Math.max(
+            0,
+            (clampedInitialFocusedIndex - Math.floor(renderedNodesCount / 2)) *
+              itemHeight
+          )
+        : 0;
+
+    const [scrollTop, setScrollTop] = useState(initialScrollTop);
+    const [startIndex, setStartIndex] = useState(
+      Math.max(0, Math.floor(scrollTop / itemHeight) - overscan)
+    );
+
+    const [firstNonDisabledIndex, lastNonDisabledIndex] = useMemo(() => {
+      const s = new Set(disabled); // Using a Set for O(1) membership checks
+
+      let l = 0;
+      let r = items.length - 1;
+
+      while (l <= r) {
+        while (l <= r && s.has(l)) {
+          l++;
+        }
+        while (l <= r && s.has(r)) {
+          r--;
+        }
+        if (l <= r) {
+          break;
+        }
+      }
+
+      return [l, r];
+    }, [disabled, items]);
+
+    const outerRef = useRef<HTMLDivElement>(null);
+    const ulRef = useRef<HTMLUListElement>(null);
+
+    const events = useDragToScroll(outerRef);
+
+    useEffect(() => {
+      const newStartIndex = Math.max(
+        0,
+        Math.floor(scrollTop / itemHeight) - overscan
+      );
+      const newRenderedNodesCount = Math.min(
+        items.length - newStartIndex,
+        Math.floor(windowHeight / itemHeight) + 2 * overscan
+      );
+
+      setStartIndex(newStartIndex);
+      setRenderedNodesCount(newRenderedNodesCount);
+    }, [scrollTop, items.length, windowHeight, itemHeight, overscan]);
+
+    // for virtualization enabled, when you move from first to last item using keyboard arrow or the opposite this effect does the calculation (move to bottom or top of the list)
+    useEffect(() => {
+      if (isKeyboardNavigation) {
+        // check if user has scrolled using mouse or scrollbar
+        if (focusedIndex === firstNonDisabledIndex && outerRef.current) {
+          outerRef.current.scrollTop = 0;
+        } else if (focusedIndex === lastNonDisabledIndex && outerRef.current) {
+          outerRef.current.scrollTop = outerRef.current.scrollHeight;
+        }
+        updateScrollPosition(focusedIndex!);
+      }
+    }, [focusedIndex, startIndex]);
+
+    useEffect(() => {
+      if (shouldFocusComponent) ulRef?.current?.focus();
+    }, [shouldFocusComponent]);
+
+    const generateRows = () => {
+      const displayedRows: JSX.Element[] = [];
+      for (let i = startIndex; i < startIndex + renderedNodesCount; i++) {
+        const index = i;
+        displayedRows.push(
+          <ListItem
+            key={index}
+            multiple={multiple}
+            checkboxOnMultiple={checkboxOnMultiple}
+            index={index}
+            disabled={disabled?.includes(index)}
+            selected={selected?.includes(index)}
+            focused={focusedIndex === index}
+            listItemStyles={listItemStyles}
+            isKeyboardNavigation={isKeyboardNavigation}
+            onClick={handleSelection}
+            setFocusedIndex={setFocusedIndex}
+          >
+            {items[index].label}
+          </ListItem>
+        );
+      }
+
+      return displayedRows;
+    };
+
     return (
-      <div key={key} style={style}>
-        <ListItem
-          key={index}
-          multiple={multiple}
-          checkboxOnMultiple={checkboxOnMultiple}
-          index={index}
-          disabled={disabled?.includes(index)}
-          selected={selected?.includes(index)}
-          focused={focusedIndex === index}
-          listItemStyles={listItemStyles}
-          isKeyboardNavigation={isKeyboardNavigation}
-          onClick={handleActions}
-          setFocusedIndex={setFocusedIndex}
+      <div
+        ref={outerRef}
+        className="w-full overflow-y-scroll"
+        style={{ height: `${windowHeight}px` }}
+        onScroll={e => {
+          setScrollTop(e.currentTarget.scrollTop);
+          if (onScroll)
+            onScroll(
+              e,
+              e.currentTarget.scrollTop === 0,
+              Boolean(
+                e.currentTarget.scrollTop + e.currentTarget.clientHeight >=
+                  e.currentTarget.scrollHeight - 1
+              )
+            );
+        }}
+        onMouseDown={() => setIsKeyboardNavigation(false)}
+        {...(overflowY && enableDragToScroll && events)}
+      >
+        <div
+          style={{
+            height: items.length * itemHeight
+          }}
+          ref={scrollContainerRef as React.RefObject<HTMLDivElement>}
         >
-          {items[index].label}
-        </ListItem>
+          <ul
+            ref={ulRef}
+            style={{
+              height: `${renderedNodesCount * itemHeight}px`,
+              transform: `translateY(${startIndex * itemHeight}px)`
+            }}
+            className="focus:outline-none"
+            tabIndex={0}
+            onKeyDown={onKeyDown}
+            onMouseMoveCapture={() => setIsKeyboardNavigation(false)}
+            onMouseLeave={() => {
+              if (onMouseLeaveResetFocusedIndex) setFocusedIndex(undefined);
+            }}
+          >
+            {generateRows()}
+          </ul>
+        </div>
       </div>
     );
   }
 
-  return enableVirtualization ? (
-    <List
-      height={20 * items.length} // Set the height of the list
-      rowCount={items.length} // Number of items in the list
-      rowHeight={20} // Size of each item in the list
-      width={100} // Set the width of the list
-      rowRenderer={rowRenderer}
-      ref={ulRef}
-      // className={clsx(
-      //   'react-navigable-list m-0 list-none border-none p-0 outline-none overflow-y-auto',
-      //   overflowY && 'overflow-y-auto',
-      //   className
-      // )}
-      tabIndex={0}
-      onKeyDown={onKeyDown}
-      onMouseMoveCapture={() => setIsKeyboardNavigation(false)}
-      onMouseLeave={() => {
-        onMouseLeaveResetFocusedIndex && setFocusedIndex(undefined);
-      }}
-      {...(overflowY && events)}
-    ></List>
-  ) : (
+  return (
     <ul
-      ref={ulRef}
+      ref={scrollContainerRef as unknown as LegacyRef<HTMLUListElement>}
       className={clsx(
         'react-navigable-list m-0 list-none border-none p-0 outline-none',
         overflowY && 'overflow-y-auto',
@@ -217,27 +362,39 @@ const ReactNavigableList: FC<INavigableListProps> = ({
       onKeyDown={onKeyDown}
       onMouseMoveCapture={() => setIsKeyboardNavigation(false)}
       onMouseLeave={() => {
-        onMouseLeaveResetFocusedIndex && setFocusedIndex(undefined);
+        if (onMouseLeaveResetFocusedIndex) setFocusedIndex(undefined);
       }}
-      {...(overflowY && events)}
+      onScroll={e => {
+        if (onScroll)
+          debounce(onScroll, 1000)(
+            e,
+            e.currentTarget.scrollTop === 0,
+            Boolean(
+              e.currentTarget.scrollTop + e.currentTarget.clientHeight >=
+                e.currentTarget.scrollHeight - 1
+            )
+          );
+      }}
+      {...(overflowY && enableDragToScroll && events)}
     >
-      {items.map((itemContent, index) => (
-        <ListItem
-          key={index}
-          multiple={multiple}
-          checkboxOnMultiple={checkboxOnMultiple}
-          index={index}
-          disabled={disabled?.includes(index)}
-          selected={selected?.includes(index)}
-          focused={focusedIndex === index}
-          listItemStyles={listItemStyles}
-          isKeyboardNavigation={isKeyboardNavigation}
-          onClick={handleActions}
-          setFocusedIndex={setFocusedIndex}
-        >
-          {itemContent.label}
-        </ListItem>
-      ))}
+      {Array.isArray(items) &&
+        items.map((itemContent, index) => (
+          <ListItem
+            key={index}
+            multiple={multiple}
+            checkboxOnMultiple={checkboxOnMultiple}
+            index={index}
+            disabled={disabled?.includes(index)}
+            selected={selected?.includes(index)}
+            focused={focusedIndex === index}
+            listItemStyles={listItemStyles}
+            isKeyboardNavigation={isKeyboardNavigation}
+            onClick={handleSelection}
+            setFocusedIndex={setFocusedIndex}
+          >
+            {itemContent.label}
+          </ListItem>
+        ))}
     </ul>
   );
 };
