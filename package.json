@@ -1,6 +1,6 @@
 {
   "name": "react-navigable-list",
-  "version": "0.1.1",
+  "version": "0.1.14",
   "type": "module",
   "description": "",
   "homepage": "https://github.com/sadiki-o/react-navigable-list#readme",
@@ -14,10 +14,7 @@
     "url": "https://github.com/sadiki-o/react-navigable-list/issues"
   },
   "files": [
-    "src/lib/**/*.js",
-    "dist/*.js",
-    "dist/{themes,styled,unstyled,full}.css",
-    "src/lib/index.ts"
+    "dist/*"
   ],
   "main": "./dist/react-navigable-list.es.js",
   "module": "./dist/react-navigable-list.umd.js",
