@@ -5,7 +5,7 @@ import React from 'react';
 
 const App = () => {
   const [selected, setSelected] = useState([1]);
-  const [disabled, _setDisabled] = useState<number[]>([0,1, 3, 9, 999]);
+  const [disabled, _setDisabled] = useState<number[]>([0, 1, 3, 9, 999]);
   const items: any = [];
 
   for (let i = 1; i <= 2200; i++) {
