@@ -21,6 +21,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 'lts/*' # Use the latest LTS version
+          registry-url: 'https://registry.npmjs.org'
           cache: 'npm' # Cache npm dependencies
 
       # Install dependencies
@@ -29,7 +30,7 @@ jobs:
 
       # Build the project
       - name: Build the project
-        run: npm run build
+        run: npm run build:lib
 
       # Publish to npm
       - name: Publish to npm

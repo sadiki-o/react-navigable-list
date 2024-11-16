@@ -8,7 +8,7 @@ import React, {
   KeyboardEvent
 } from 'react';
 import clsx from 'clsx';
-import { INavigableListProps } from '@/utils/types';
+import { INavigableListProps } from '../utils/types';
 import { useDragToScroll } from '@/hooks/useDragToScroll';
 import { debounce } from '@/utils/helpers';
 import { isKeyType, KeysEnum, KeysList } from '@/utils/keys';

@@ -8,7 +8,7 @@ const App = () => {
   const [disabled, _setDisabled] = useState<number[]>([0, 1, 3, 9, 999]);
   const items: any = [];
 
-  for (let i = 1; i <= 2200; i++) {
+  for (let i = 1; i <= 2000; i++) {
     items.push({
       label: `option ${i}`,
       value: `option_${i}`
