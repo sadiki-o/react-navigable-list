@@ -65,7 +65,7 @@ type BaseProps = {
    * should focus the component to use keyboard shortcuts.
    * @default - false
    */
-  shouldFocusComponent?: boolean;
+  shouldFocusComponent?: boolean; 
   /**
    * enable multi select or not.
    * @default - false
