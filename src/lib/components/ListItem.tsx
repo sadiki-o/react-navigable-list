@@ -21,18 +21,22 @@ const ListItem: FunctionComponent<IListItemProps> = memo(function ListItem({
   return (
     <li
       className={clsx(
-        `${selected ? 'list-item-selected' : focused ? 'list-item-focused' : disabled ? 'list-item-disabled' : 'normal-list-item'} mt-[2px] flex h-[20px] cursor-default items-center px-1 text-[12px] text-[#7C7975]`,
+        'rnl-reset mt-[2px] flex h-[20px] cursor-default items-center px-1 text-[12px] text-[#7C7975]', // Default styles
         {
+          // Focused item styles when keyboard navigation is active
           [listItemStyles?.focusedClasses || 'bg-[#e6e4e0] text-[#94928f]']:
-            focused && !disabled && !selected,
+            isKeyboardNavigation && focused && !disabled && !selected,
+
+          // Disabled item styles
           [listItemStyles?.disabledClasses ?? '!text-[#C7C8CC]']: disabled,
+
+          // Selected item styles
           [listItemStyles?.selectedClasses ?? 'bg-option-selected !text-white']:
             selected,
-          ['hover:bg-[#e6e4e0] hover:text-[#94928f]']:
-            !isKeyboardNavigation &&
-            !focused &&
-            !disabled &&
-            !listItemStyles?.focusedClasses
+
+          // Hover styles (only apply if mouse is being used and not focused or disabled)
+          'hover:bg-[#e6e4e0] hover:text-[#94928f]':
+            !isKeyboardNavigation && !disabled && !selected
         }
       )}
       style={{
@@ -52,7 +56,7 @@ const ListItem: FunctionComponent<IListItemProps> = memo(function ListItem({
       {multiple && checkboxOnMultiple && (
         <input
           type="checkbox"
-          className={`${listItemStyles?.checkboxClasses} mr-1 h-3 w-3 border-list-checkbox bg-none text-green-500`}
+          className={`${listItemStyles?.checkboxClasses} rnl-reset mr-1 h-3 w-3 border-list-checkbox bg-none text-green-500`}
           checked={selected}
           onChange={() => !disabled && onClick(index)}
           style={{

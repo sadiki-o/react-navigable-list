@@ -306,7 +306,7 @@ const ReactNavigableList: FunctionComponent<INavigableListProps> = ({
     return (
       <div
         ref={outerRef}
-        className="w-full overflow-y-scroll"
+        className={`react-navigable-list rnl-reset overflow-y-scroll ${className}`}
         style={{ height: `${windowHeight}px` }}
         onScroll={e => {
           setScrollTop(e.currentTarget.scrollTop);
@@ -328,6 +328,7 @@ const ReactNavigableList: FunctionComponent<INavigableListProps> = ({
             height: items.length * itemHeight
           }}
           ref={scrollContainerRef as React.RefObject<HTMLDivElement>}
+          className='rnl-reset'
         >
           <ul
             ref={ulRef}
@@ -335,7 +336,7 @@ const ReactNavigableList: FunctionComponent<INavigableListProps> = ({
               height: `${renderedNodesCount * itemHeight}px`,
               transform: `translateY(${startIndex * itemHeight}px)`
             }}
-            className="focus:outline-none"
+            className="rnl-reset focus:outline-none"
             tabIndex={0}
             onKeyDown={onKeyDown}
             onMouseMoveCapture={() => setIsKeyboardNavigation(false)}
@@ -354,9 +355,8 @@ const ReactNavigableList: FunctionComponent<INavigableListProps> = ({
     <ul
       ref={scrollContainerRef as unknown as LegacyRef<HTMLUListElement>}
       className={clsx(
-        'react-navigable-list m-0 list-none border-none p-0 outline-none',
-        overflowY && 'overflow-y-auto',
-        className
+        `react-navigable-list rnl-reset m-0 list-none p-0 outline-none ${className}`,
+        overflowY && 'overflow-y-auto'
       )}
       tabIndex={0}
       onKeyDown={onKeyDown}

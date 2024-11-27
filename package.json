@@ -1,9 +1,9 @@
 {
   "name": "react-navigable-list",
-  "version": "0.1.15",
+  "version": "0.1.21",
   "type": "module",
   "description": "",
-  "homepage": "https://github.com/sadiki-o/react-navigable-list#readme",
+  "homepage": "https://rnl-docs.vercel.app/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sadiki-o/react-navigable-list.git"

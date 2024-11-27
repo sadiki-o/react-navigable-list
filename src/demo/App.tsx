@@ -16,8 +16,8 @@ const App = () => {
   }
 
   return (
-    <div className="flex justify-center gap-x-5 m-10 ">
-      <div className="flex w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-[2px]">
+    <div className="">
+      <div className="flex justify-center gap-x-5 m-10">
         <ReactNavigableList
           items={items}
           selected={selected}
@@ -27,10 +27,9 @@ const App = () => {
           onChange={selected => {
             console.log(selected);
           }}
+          className="flex w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-[2px]"
         />
-      </div>
 
-      <div className="flex w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-[2px]">
         <ReactNavigableList
           items={items}
           selected={selected}
@@ -41,10 +40,8 @@ const App = () => {
           onChange={selected => {
             console.log(selected);
           }}
+          className="flex w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-[2px]"
         />
-      </div>
-
-      <div className="flex h-[220px] w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-[2px]">
         <ReactNavigableList
           items={items}
           disabled={disabled}
@@ -56,10 +53,9 @@ const App = () => {
           onScroll={(e, b, c) => {
             console.log(c);
           }}
+          className="flex h-[220px] w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-[2px]"
         />
-      </div>
 
-      <div className="flex h-[220px] w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-[2px]">
         <ReactNavigableList
           items={items}
           disabled={disabled}
@@ -74,24 +70,25 @@ const App = () => {
             console.log(selected);
           }}
           maxSelection={4}
+          className="flex h-[220px] w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-[2px]"
         />
-      </div>
 
-      <div className="flex h-[220px] w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-[2px]">
-        <ReactNavigableList
-          items={items}
-          disabled={disabled}
-          listItemStyles={{
-            disabledClasses: 'text-pink-300',
-            checkboxClasses: 'accent-black'
-          }}
-          multiple={true}
-          checkboxOnMultiple={true}
-          onChange={selected => {
-            console.log(selected);
-          }}
-          enableVirtualization
-        />
+        <div className="flex h-[220px] w-[200px] flex-col justify-between border border-[#BCB8B1] bg-white px-1 py-1">
+          <ReactNavigableList
+            items={items}
+            disabled={disabled}
+            listItemStyles={{
+              disabledClasses: 'text-pink-300',
+              checkboxClasses: 'accent-black'
+            }}
+            multiple={true}
+            checkboxOnMultiple={true}
+            onChange={selected => {
+              console.log(selected);
+            }}
+            enableVirtualization
+          />
+        </div>
       </div>
     </div>
   );
